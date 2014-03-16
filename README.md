@@ -10,6 +10,8 @@ This widget is currently very bare bone (and probably broken in several
 ways). It fetches tiles as textures from the configured back end, and
 stores these tiles as a TiledMapLayer, based on their zoom level.
 
+![Map teaser](http://mehl.no/maps/teaser.png "teaser!")
+
 ## Goal
 
 The goal of this project is to create a cross platform OpenStreetMap
