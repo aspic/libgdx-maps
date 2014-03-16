@@ -23,11 +23,11 @@ public class GeoUtil {
             return false;
         }
         // if of the map to the right
-        if (info.getMapCenterInPixelsAtZoom(zoomLevel).x * 2 <= x * info.getTileSize(zoomLevel)) {
+        if (info.getMapCenterInPixelsAtZoom(zoomLevel).x * 2 <= x * info.getTileSize()) {
             return false;
         }
         // if off the map to the bottom
-        if (info.getMapCenterInPixelsAtZoom(zoomLevel).y * 2 <= y * info.getTileSize(zoomLevel)) {
+        if (info.getMapCenterInPixelsAtZoom(zoomLevel).y * 2 <= y * info.getTileSize()) {
             return false;
         }
         // if out of zoom bounds

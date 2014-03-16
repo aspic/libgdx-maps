@@ -10,7 +10,7 @@
 package no.mehl.libgdx.map.util;
 
 import com.badlogic.gdx.graphics.Texture;
-import no.mehl.libgdx.map.info.TileFactory;
+import no.mehl.libgdx.map.info.MapManager;
 
 import java.lang.ref.SoftReference;
 
@@ -26,7 +26,7 @@ public class TextureTile {
 
 	private Priority priority = Priority.High;
 
-	private TileFactory dtf;
+	private MapManager dtf;
 
 	private boolean isLoading = false;
 
@@ -78,7 +78,7 @@ public class TextureTile {
 	 * @param priority the priority
 	 * @param dtf the tile factory
 	 */
-    public TextureTile(int x, int y, int zoom, String url, Priority priority, TileFactory dtf)
+    public TextureTile(int x, int y, int zoom, String url, Priority priority, MapManager dtf)
 	{
 		this.url = url;
         loaded = false;

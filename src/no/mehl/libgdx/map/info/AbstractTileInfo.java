@@ -117,7 +117,7 @@ public abstract class AbstractTileInfo {
         this.tileSize = tileSize;
 
         // init the num tiles wide
-        int tilesize = this.getTileSize(0);
+        int tilesize = this.tileSize;
 
         longitudeDegreeWidthInPixels = new double[totalMapZoom + 1];
         longitudeRadianWidthInPixels = new double[totalMapZoom + 1];
@@ -133,7 +133,7 @@ public abstract class AbstractTileInfo {
             longitudeRadianWidthInPixels[z] = tilesize / (2.0 * Math.PI);
             int t2 = tilesize / 2;
             mapCenterInPixelsAtZoom[z] = new Vector2(t2, t2);
-            mapWidthInTilesAtZoom[z] = tilesize / this.getTileSize(0);
+            mapWidthInTilesAtZoom[z] = tilesize / this.tileSize;
             tilesize *= 2;
         }
 
@@ -223,8 +223,7 @@ public abstract class AbstractTileInfo {
      * @param zoom the zoom level
      * @return the tile size
      */
-    public int getTileSize(int zoom)
-    {
+    public int getTileSize() {
         return tileSize;
     }
 
