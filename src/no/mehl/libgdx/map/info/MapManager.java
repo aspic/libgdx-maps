@@ -57,7 +57,7 @@ public class MapManager {
 		renderer = new OrthogonalTiledMapRenderer(tiledMap, 1f/info.getTileSize());
 
 		camera = new OrthographicCamera();
-		camera.setToOrtho(true, (Gdx.graphics.getWidth() / (float) Gdx.graphics.getHeight()) * 4, 4);
+		camera.setToOrtho(true, (Gdx.graphics.getWidth() / (float) Gdx.graphics.getHeight()) * 2, 2);
 		camera.position.set(1, 1, 0);
 
 		// Initialize map
@@ -270,5 +270,16 @@ public class MapManager {
 
 	public OrthographicCamera getCamera() {
 		return camera;
+	}
+
+	/**
+	 * Returns the {@link no.mehl.libgdx.map.util.GeoPosition} as a point in pixels relative to the zoom
+	 */
+	public Vector2 geoInPixels(GeoPosition pos) {
+		Dimension dim = GeoUtil.getMapSize(zoom, info);
+		int mapW = dim.getWidth() * getTileSize();
+		int mapH = dim.getHeight() * getTileSize();
+		Vector2 point = geoToPixel(pos, zoom);
+		return new Vector2((float) ((point.x / mapW) * Math.pow(2, zoom)), (float) ((point.y / mapH) * Math.pow(2, zoom)));
 	}
 }

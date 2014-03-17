@@ -9,10 +9,12 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Logger;
 import no.mehl.libgdx.map.info.MapQuestTileFactoryInfo;
 import no.mehl.libgdx.map.info.MapManager;
+import no.mehl.libgdx.map.util.GeoPosition;
 
 public class MapTest implements ApplicationListener, InputProcessor {
 
@@ -35,7 +37,8 @@ public class MapTest implements ApplicationListener, InputProcessor {
         Gdx.input.setInputProcessor(this);
 
         // Tile maps
-        // updatePin();
+        updatePin();
+		pin = new Texture(Gdx.files.external("dev/assets/sprites_ui/pin.png"));
 
         batch = new SpriteBatch();
         batch.setColor(Color.GREEN);
@@ -51,7 +54,13 @@ public class MapTest implements ApplicationListener, InputProcessor {
     @Override
     public void render() {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+		Gdx.gl.glClearColor(0.3f, 0.3f, 0.7f, 1.0f);
 		mapManager.render();
+
+		batch.setProjectionMatrix(camera.combined);
+		batch.begin();
+		batch.draw(pin, pinPos.x - pinWidth * 0.5f, pinPos.y, pinWidth, -pinHeight);
+		batch.end();
     }
 
     @Override
@@ -73,7 +82,6 @@ public class MapTest implements ApplicationListener, InputProcessor {
     public boolean keyDown(int keycode) {
         if(keycode == Input.Keys.ESCAPE) {
             mapManager.zoom(0, 0, -1);
-            return false;
         } else if(keycode == Input.Keys.LEFT) {
             camera.position.x -= 1;
         } else if(keycode == Input.Keys.RIGHT) camera.position.x += 1;
@@ -81,6 +89,7 @@ public class MapTest implements ApplicationListener, InputProcessor {
         else if(keycode == Input.Keys.DOWN) camera.position.y += 1;
 
 		mapManager.updateTiles();
+		updatePin();
 
         return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
@@ -103,6 +112,7 @@ public class MapTest implements ApplicationListener, InputProcessor {
 
         logger.info("clicked: %s", vector3.toString());
         mapManager.zoom(2 * vector3.x, 2 * vector3.y, 1);
+		updatePin();
         return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
@@ -126,15 +136,9 @@ public class MapTest implements ApplicationListener, InputProcessor {
         return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    /** Sets some pin that we have
+    /** Sets some pin that we have */
     private void updatePin() {
-        Dimension dim = mapManager.getMapDimension(zoom);
-        int mapWidth = dim.getWidth() * mapManager.getTileSize();
-        int mapHeight = dim.getHeight() * mapManager.getTileSize();
-        Vector2 point = mapManager.geoToPixel(new GeoPosition(59.9267740, 15.7161670), zoom);
-
-        pinPos.set((float) ((point.x / mapWidth) * Math.pow(2, zoom)), (float) ((point.y / mapHeight) * Math.pow(2,
-				zoom)), 0);
+		Vector2 pos = mapManager.geoInPixels(new GeoPosition(59.9267740, 15.7161670));
+        pinPos.set(pos.x, pos.y, 0);
     }
-	 */
 }
