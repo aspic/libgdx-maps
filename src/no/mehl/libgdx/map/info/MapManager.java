@@ -11,6 +11,7 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
+import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.net.HttpStatus;
@@ -44,6 +45,12 @@ public class MapManager {
 	private OrthogonalTiledMapRenderer renderer;
 	private OrthographicCamera camera;
 
+	private TiledMapTileLayer fromLayer;
+	private TiledMapTileLayer toLayer;
+	private float time;
+	private float transitionTime = 0.5f;
+	private Interpolation ipol = Interpolation.pow2;
+
     public MapManager(AbstractTileInfo info) {
         this(info, null, new DiskCache("libgdx-maps/"));
     }
@@ -64,10 +71,22 @@ public class MapManager {
 		updateTiles();
     }
 
-	public void render() {
+	public void render(float delta) {
 		camera.update();
 		renderer.setView(camera);
 		renderer.render();
+
+		if(fromLayer != null && toLayer != null) {
+			if(time > transitionTime) {
+				fromLayer = null;
+				toLayer = null;
+				return;
+			}
+
+			time += delta;
+			toLayer.setOpacity(ipol.apply(0, 1, time/transitionTime));
+			fromLayer.setOpacity(ipol.apply(1, 0, time/transitionTime));
+		}
 	}
 
 	/**
@@ -252,20 +271,44 @@ public class MapManager {
 
 	/** Zoom to some level in the tiled map */
 	public void zoom(float centerX, float centerY, int dZoom) {
+		transition(dZoom);
+		camera.position.set(centerX, centerY, 0);
+	}
+
+	private void transition(int dZoom) {
 		if(dZoom == 1) {
-			zoomLevels.add(new Vector3(camera.position.x, camera.position.y, zoom));
-			getLayer(zoom).setVisible(false);
+			float camX = camera.position.x * 2;
+			float camY = camera.position.y * 2;
+			zoomLevels.add(new Vector3(camX, camY, zoom));
+			fromLayer = getLayer(zoom);
 			zoom += dZoom;
-			getLayer(zoom).setVisible(true);
-			camera.position.set(centerX, centerY, 0);
+			toLayer = getLayer(zoom);
+			camera.position.set(camX, camY, 0);
 		} else if(dZoom == -1) {
 			Vector3 pos = zoomLevels.pop();
-			getLayer(zoom).setVisible(false);
+			fromLayer = getLayer(zoom);
 			zoom = (int)pos.z;
-			getLayer(zoom).setVisible(true);
-			camera.position.set(pos.x, pos.y, 0);
+			toLayer = getLayer(zoom);
+			camera.position.set(pos.x * 0.5f, pos.y * 0.5f, 0);
 		}
+		time = 0;
 		updateTiles();
+	}
+
+	public void zoomCamera(float diff) {
+		float zoom = camera.zoom + diff;
+
+		// Load outer tiles
+		if(zoom > 1.5f) {
+			camera.zoom = 1f;
+			transition(-1);
+		} else if (zoom < 0.5f) {
+			camera.zoom = 1f;
+			transition(1);
+		} else {
+			camera.zoom += diff;
+		}
+
 	}
 
 	public OrthographicCamera getCamera() {

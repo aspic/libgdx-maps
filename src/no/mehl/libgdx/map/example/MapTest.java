@@ -55,7 +55,7 @@ public class MapTest implements ApplicationListener, InputProcessor {
     public void render() {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 		Gdx.gl.glClearColor(0.3f, 0.3f, 0.7f, 1.0f);
-		mapManager.render();
+		mapManager.render(Gdx.graphics.getDeltaTime());
 
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
@@ -81,7 +81,7 @@ public class MapTest implements ApplicationListener, InputProcessor {
     @Override
     public boolean keyDown(int keycode) {
         if(keycode == Input.Keys.ESCAPE) {
-            mapManager.zoom(0, 0, -1);
+            mapManager.zoomCamera(1);
         } else if(keycode == Input.Keys.LEFT) {
             camera.position.x -= 1;
         } else if(keycode == Input.Keys.RIGHT) camera.position.x += 1;
@@ -111,7 +111,7 @@ public class MapTest implements ApplicationListener, InputProcessor {
         // camera.position.set(vector3.x, vector3.y, 0);
 
         logger.info("clicked: %s", vector3.toString());
-        mapManager.zoom(2 * vector3.x, 2 * vector3.y, 1);
+       	mapManager.zoom(2 * vector3.x, 2 * vector3.y, 1);
 		updatePin();
         return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
@@ -133,7 +133,8 @@ public class MapTest implements ApplicationListener, InputProcessor {
 
     @Override
     public boolean scrolled(int amount) {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
+		mapManager.zoomCamera(0.05f * amount);
+		return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     /** Sets some pin that we have */
