@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Logger;
@@ -29,6 +30,7 @@ public class MapTest implements ApplicationListener, InputProcessor {
 
     private float pinWidth = 0.1f;
     private float pinHeight = 0.1f;
+	private Vector2 downPos;
 
     @Override
     public void create() {
@@ -104,6 +106,8 @@ public class MapTest implements ApplicationListener, InputProcessor {
         return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
+	private boolean down;
+
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         Vector3 vector3 = new Vector3(screenX, screenY, 0);
@@ -111,18 +115,28 @@ public class MapTest implements ApplicationListener, InputProcessor {
         // camera.position.set(vector3.x, vector3.y, 0);
 
         logger.info("clicked: %s", vector3.toString());
-       	mapManager.zoom(2 * vector3.x, 2 * vector3.y, 1);
+       	// mapManager.zoom(2 * vector3.x, 2 * vector3.y, 1);
 		updatePin();
+
+		downPos = new Vector2(screenX, screenY);
         return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+		downPos = null;
         return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
+		if(downPos != null) {
+			float dX = (screenX - downPos.x) * 0.0001f;
+			float dY = (screenY - downPos.y) * 0.0001f;
+
+			camera.position.add(dX, dY, 0);
+
+		}
         return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
 

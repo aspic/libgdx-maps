@@ -95,8 +95,8 @@ public class MapManager {
 	 */
 	public void updateTiles() {
 
-		float h2 = camera.viewportHeight * 0.5f;
-		float w2 = camera.viewportWidth * 0.5f;
+		float h2 = camera.viewportHeight * 0.75f;
+		float w2 = camera.viewportWidth * 0.75f;
 
 		float x = camera.position.x;
 		float y = camera.position.y;
@@ -307,6 +307,9 @@ public class MapManager {
 			transition(1);
 		} else {
 			camera.zoom += diff;
+		}
+		if(diff > 0) {
+			// updateTiles();
 		}
 
 	}
