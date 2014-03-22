@@ -30,7 +30,7 @@ import java.util.Stack;
  */
 public class MapManager {
 
-	private Logger logger = new Logger(MapManager.class, Logger.INFO);
+	private Logger logger = new Logger(MapManager.class.getSimpleName(), Logger.INFO);
 
     private AbstractTileInfo info;
     private ObjectMap<String, TextureTile> tileCache = new ObjectMap<String, TextureTile>(); // TODO: Rely on tiled maps instead.
@@ -47,9 +47,23 @@ public class MapManager {
 
 	private TiledMapTileLayer fromLayer;
 	private TiledMapTileLayer toLayer;
-	private float time;
-	private float transitionTime = 0.5f;
-	private Interpolation ipol = Interpolation.pow2;
+
+	private InterpolationWrapper<Vector2> panInterpolation = new InterpolationWrapper<Vector2>(0.2f, Interpolation.sine) {
+		@Override
+		public void interpolate(float elapsed, Interpolation interpolation, Vector2 start, Vector2 end) {
+			float x = interpolation.apply(start.x, end.x, elapsed);
+			float y = interpolation.apply(start.y, end.y, elapsed);
+			camera.position.set(x, y, 0);
+		}
+	};
+
+	private InterpolationWrapper<Integer> layerInterpolation = new InterpolationWrapper<Integer>(0.5f, Interpolation.pow2) {
+		@Override
+		public void interpolate(float elapsed, Interpolation interpolation, Integer start, Integer end) {
+			toLayer.setOpacity(interpolation.apply(start, end, elapsed));
+			fromLayer.setOpacity(interpolation.apply(end, start, elapsed));
+		}
+	};
 
     public MapManager(AbstractTileInfo info) {
         this(info, null, new DiskCache("libgdx-maps/"));
@@ -76,17 +90,8 @@ public class MapManager {
 		renderer.setView(camera);
 		renderer.render();
 
-		if(fromLayer != null && toLayer != null) {
-			if(time > transitionTime) {
-				fromLayer = null;
-				toLayer = null;
-				return;
-			}
-
-			time += delta;
-			toLayer.setOpacity(ipol.apply(0, 1, time/transitionTime));
-			fromLayer.setOpacity(ipol.apply(1, 0, time/transitionTime));
-		}
+		layerInterpolation.update(delta);
+		panInterpolation.update(delta);
 	}
 
 	/**
@@ -243,7 +248,7 @@ public class MapManager {
 		int x = tile.getX();
 		int y = tile.getY();
 
-		logger.info("Adds tile: x=%d, y=%d", x, y);
+		logger.info(String.format("Adds tile: x=%d, y=%d", x, y));
 		layer.setCell(x, y, cell);
 	}
 
@@ -259,7 +264,7 @@ public class MapManager {
 		try {
 			layer = (TiledMapTileLayer) tiledMap.getLayers().get(index);
 		} catch(IndexOutOfBoundsException e) {
-			logger.info("Layer did not exist for zoom %d", index);
+			logger.info(String.format("Layer did not exist for zoom %d", index));
 		}
 
 		if(layer == null) {
@@ -291,7 +296,7 @@ public class MapManager {
 			toLayer = getLayer(zoom);
 			camera.position.set(pos.x * 0.5f, pos.y * 0.5f, 0);
 		}
-		time = 0;
+		layerInterpolation.start(0, 1);
 		updateTiles();
 	}
 
@@ -311,7 +316,10 @@ public class MapManager {
 		if(diff > 0) {
 			// updateTiles();
 		}
+	}
 
+	public void panCamera(float dX, float dY) {
+		panInterpolation.start(new Vector2(camera.position.x, camera.position.y), new Vector2(camera.position.x + dX, camera.position.y + dY));
 	}
 
 	public OrthographicCamera getCamera() {
