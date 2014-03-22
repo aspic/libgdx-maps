@@ -2,7 +2,7 @@ package no.mehl.libgdx.map.util;
 
 import com.badlogic.gdx.math.Interpolation;
 
-/** Class to wrap an interpolation in order to keep track of interpolated time and max time */
+/** Class to wrap an interpolation in order to keep track of elapsed and max time. */
 public abstract class InterpolationWrapper<T> {
 
 	private float runtime;
@@ -17,8 +17,8 @@ public abstract class InterpolationWrapper<T> {
 		this.time = runtime;
 	}
 
-	/** Run this interpolation */
-	public void update(float delta) {
+	/** Runs this interpolation unless it's finished. */
+	public void interpolate(float delta) {
 		if(time >= runtime) return;
 
 		time += delta;
@@ -33,5 +33,5 @@ public abstract class InterpolationWrapper<T> {
 	}
 
 	/** Perform the interpolation based on elapsed time */
-	public abstract void interpolate(float elapsed, Interpolation interpolation, T start, T end);
+	protected abstract void interpolate(float elapsed, Interpolation interpolation, T start, T end);
 }
