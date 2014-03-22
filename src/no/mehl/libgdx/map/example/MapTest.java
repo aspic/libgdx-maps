@@ -111,7 +111,7 @@ public class MapTest implements ApplicationListener, InputProcessor {
         camera.unproject(vector3);
         // camera.position.set(vector3.x, vector3.y, 0);
 
-       	// mapManager.zoom(2 * vector3.x, 2 * vector3.y, 1);
+       	mapManager.zoom(2 * vector3.x, 2 * vector3.y, 1);
 		updatePin();
 
 		downPos = new Vector2(screenX, screenY);

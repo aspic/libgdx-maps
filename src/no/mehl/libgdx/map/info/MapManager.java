@@ -38,7 +38,6 @@ public class MapManager {
     private TileListener listener;
     private int loadTile = 0;
 	private int zoom = 1;
-	private Stack<Vector3> zoomLevels = new Stack<Vector3>();
 
 	// Tile map
 	private TiledMap tiledMap;
@@ -50,17 +49,16 @@ public class MapManager {
 
 	private InterpolationWrapper<Vector2> panInterpolation = new InterpolationWrapper<Vector2>(0.2f, Interpolation.sine) {
 		@Override
-		public void interpolate(float elapsed, Interpolation interpolation, Vector2 start, Vector2 end) {
+		protected void interpolate(float elapsed, Interpolation interpolation, Vector2 start, Vector2 end) {
 			float x = interpolation.apply(start.x, end.x, elapsed);
 			float y = interpolation.apply(start.y, end.y, elapsed);
 			camera.position.set(x, y, 0);
 		}
 	};
-
 	private InterpolationWrapper<Integer> layerInterpolation = new InterpolationWrapper<Integer>(0.5f, Interpolation.pow2) {
 		@Override
-		public void interpolate(float elapsed, Interpolation interpolation, Integer start, Integer end) {
-			toLayer.setOpacity(interpolation.apply(start, end, elapsed));
+		protected void interpolate(float elapsed, Interpolation interpolation, Integer start, Integer end) {
+			toLayer.setOpacity(interpolation.apply(0, 1, elapsed));
 			fromLayer.setOpacity(interpolation.apply(end, start, elapsed));
 		}
 	};
@@ -90,8 +88,8 @@ public class MapManager {
 		renderer.setView(camera);
 		renderer.render();
 
-		layerInterpolation.update(delta);
-		panInterpolation.update(delta);
+		layerInterpolation.interpolate(delta);
+		panInterpolation.interpolate(delta);
 	}
 
 	/**
@@ -282,19 +280,15 @@ public class MapManager {
 
 	private void transition(int dZoom) {
 		if(dZoom == 1) {
-			float camX = camera.position.x * 2;
-			float camY = camera.position.y * 2;
-			zoomLevels.add(new Vector3(camX, camY, zoom));
 			fromLayer = getLayer(zoom);
 			zoom += dZoom;
 			toLayer = getLayer(zoom);
-			camera.position.set(camX, camY, 0);
+			camera.position.set(camera.position.x * 2, camera.position.y * 2, 0);
 		} else if(dZoom == -1) {
-			Vector3 pos = zoomLevels.pop();
 			fromLayer = getLayer(zoom);
-			zoom = (int)pos.z;
+			zoom -= 1;
 			toLayer = getLayer(zoom);
-			camera.position.set(pos.x * 0.5f, pos.y * 0.5f, 0);
+			camera.position.set(camera.position.x * 0.5f, camera.position.y * 0.5f, 0);
 		}
 		layerInterpolation.start(0, 1);
 		updateTiles();
