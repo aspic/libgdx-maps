@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Logger;
@@ -19,7 +18,7 @@ import no.mehl.libgdx.map.util.GeoPosition;
 
 public class MapTest implements ApplicationListener, InputProcessor {
 
-    private Logger logger = new Logger(MapTest.class, Logger.INFO);
+    private Logger logger = new Logger(MapTest.class.getSimpleName(), Logger.INFO);
 
     OrthographicCamera camera;
     private MapManager mapManager;
@@ -82,13 +81,11 @@ public class MapTest implements ApplicationListener, InputProcessor {
 
     @Override
     public boolean keyDown(int keycode) {
-        if(keycode == Input.Keys.ESCAPE) {
-            mapManager.zoomCamera(1);
-        } else if(keycode == Input.Keys.LEFT) {
-            camera.position.x -= 1;
-        } else if(keycode == Input.Keys.RIGHT) camera.position.x += 1;
-        else if(keycode == Input.Keys.UP) camera.position.y -= 1;
-        else if(keycode == Input.Keys.DOWN) camera.position.y += 1;
+        if(keycode == Input.Keys.ESCAPE) mapManager.zoomCamera(1);
+        else if(keycode == Input.Keys.LEFT) mapManager.panCamera(-0.5f, 0);
+        else if(keycode == Input.Keys.RIGHT) mapManager.panCamera(0.5f, 0);
+        else if(keycode == Input.Keys.UP) mapManager.panCamera(0, -0.5f);
+        else if(keycode == Input.Keys.DOWN) mapManager.panCamera(0, 0.5f);
 
 		mapManager.updateTiles();
 		updatePin();
@@ -114,7 +111,6 @@ public class MapTest implements ApplicationListener, InputProcessor {
         camera.unproject(vector3);
         // camera.position.set(vector3.x, vector3.y, 0);
 
-        logger.info("clicked: %s", vector3.toString());
        	// mapManager.zoom(2 * vector3.x, 2 * vector3.y, 1);
 		updatePin();
 
@@ -124,19 +120,11 @@ public class MapTest implements ApplicationListener, InputProcessor {
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-		downPos = null;
         return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
-		if(downPos != null) {
-			float dX = (screenX - downPos.x) * 0.0001f;
-			float dY = (screenY - downPos.y) * 0.0001f;
-
-			camera.position.add(dX, dY, 0);
-
-		}
         return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
