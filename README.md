@@ -18,6 +18,32 @@ The goal of this project is to create a cross platform OpenStreetMap
 module for libgdx applications. It should be easy to switch between OSM
 back ends (such as openstreetmap.org and mapquest.co.uk).
 
+## Usage
+
+### Scene2D
+
+First of all a MapManager has to be created. This is the main class
+encapsulating the camera, framebuffer object and network logic. Next
+pass this manager to the MapWidget. Then add the widget to your stage.
+
+    ...
+    mapManager = new MapManager(new MapQuestTileFactoryInfo());
+
+    MapWidget widget = new MapWidget(manager);
+    widget.setSize(stage.getWidth(), stage.getHeight());
+    stage.addActor(widget);
+    ...
+
+In your render loop, make sure to update the MapManager.
+
+    public void render() {
+        mapManager.update();
+        // do other render stuff
+    }
+
+The widget is essentially a Table which makes it easy to add it to other
+widgets (or to add widgets to the map).
+
 ## Dependencies
 
 This project depends on [libgdx](https://github.com/libgdx/). You will
