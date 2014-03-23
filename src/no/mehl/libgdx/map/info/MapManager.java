@@ -3,10 +3,14 @@ package no.mehl.libgdx.map.info;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
@@ -22,13 +26,16 @@ import no.mehl.libgdx.map.util.*;
 import no.mehl.libgdx.map.cache.ByteCache;
 
 import java.lang.ref.SoftReference;
-import java.util.Stack;
 
 /**
  *  A map manager which loads tiles from the back end and adds them to
  *  a {@link com.badlogic.gdx.maps.tiled.TiledMap}.
  */
 public class MapManager {
+
+
+	private float width, height;
+	private float mapX, mapY;
 
 	private Logger logger = new Logger(MapManager.class.getSimpleName(), Logger.INFO);
 
@@ -46,8 +53,11 @@ public class MapManager {
 
 	private TiledMapTileLayer fromLayer;
 	private TiledMapTileLayer toLayer;
+	private FrameBuffer buffer;
 
-	private InterpolationWrapper<Vector2> panInterpolation = new InterpolationWrapper<Vector2>(0.2f, Interpolation.sine) {
+	private TextureRegion mapRegion;
+
+	private Interpolator<Vector2> panInterpolation = new Interpolator<Vector2>(0.1f, Interpolation.pow2) {
 		@Override
 		protected void interpolate(float elapsed, Interpolation interpolation, Vector2 start, Vector2 end) {
 			float x = interpolation.apply(start.x, end.x, elapsed);
@@ -55,7 +65,7 @@ public class MapManager {
 			camera.position.set(x, y, 0);
 		}
 	};
-	private InterpolationWrapper<Integer> layerInterpolation = new InterpolationWrapper<Integer>(0.5f, Interpolation.pow2) {
+	private Interpolator<Integer> layerInterpolation = new Interpolator<Integer>(0.5f, Interpolation.pow2) {
 		@Override
 		protected void interpolate(float elapsed, Interpolation interpolation, Integer start, Integer end) {
 			toLayer.setOpacity(interpolation.apply(0, 1, elapsed));
@@ -64,32 +74,51 @@ public class MapManager {
 	};
 
     public MapManager(AbstractTileInfo info) {
-        this(info, null, new DiskCache("libgdx-maps/"));
+        this(info, null, new DiskCache("libgdx-maps/"), 500, 500, 0, 0);
     }
 
-    public MapManager(AbstractTileInfo info, TileListener listener, ByteCache cache) {
+    public MapManager(AbstractTileInfo info, TileListener listener, ByteCache cache, float width, float height, float mapX, float mapY) {
         this.info = info;
         this.listener = listener;
         this.cache = cache;
 
-		tiledMap = new TiledMap();
-		renderer = new OrthogonalTiledMapRenderer(tiledMap, 1f/info.getTileSize());
+		this.width = width;
+		this.height = height;
+		this.mapX = mapX;
+		this.mapY = mapY;
 
-		camera = new OrthographicCamera();
-		camera.setToOrtho(true, (Gdx.graphics.getWidth() / (float) Gdx.graphics.getHeight()) * 2, 2);
-		camera.position.set(1, 1, 0);
+		tiledMap = new TiledMap();
+		renderer = new OrthogonalTiledMapRenderer(tiledMap, 1f);
+		buffer = new FrameBuffer(Pixmap.Format.RGBA8888, (int)width, (int)height, false);
+		camera = new OrthographicCamera(width, height);
+		camera.position.set(width*0.5f, height*0.5f, 0);
+
+		mapRegion = new TextureRegion();
 
 		// Initialize map
 		updateTiles();
     }
 
-	public void render(float delta) {
+	/** Redraws the map onto the frame buffer */
+	public void update() {
+		// Render to framebuffer
+		buffer.begin();
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 		camera.update();
 		renderer.setView(camera);
 		renderer.render();
+		buffer.end();
 
-		layerInterpolation.interpolate(delta);
-		panInterpolation.interpolate(delta);
+		mapRegion.setRegion(buffer.getColorBufferTexture());
+
+		layerInterpolation.interpolate(Gdx.graphics.getDeltaTime());
+		panInterpolation.interpolate(Gdx.graphics.getDeltaTime());
+	}
+
+	/** Render this map to the provided spritebatch */
+	public void draw(Batch batch) {
+		// Render window
+		batch.draw(mapRegion, mapX, mapY, width, height);
 	}
 
 	/**
@@ -98,11 +127,11 @@ public class MapManager {
 	 */
 	public void updateTiles() {
 
-		float h2 = camera.viewportHeight * 0.75f;
-		float w2 = camera.viewportWidth * 0.75f;
+		float h2 = (camera.viewportHeight * 0.75f)/info.getTileSize();
+		float w2 = (camera.viewportWidth * 0.75f)/info.getTileSize();
 
-		float x = camera.position.x;
-		float y = camera.position.y;
+		float x = camera.position.x/info.getTileSize();
+		float y = camera.position.y/info.getTileSize();
 
 		for(int i = (int)Math.floor(x - w2); i <= Math.floor(x + w2); i++) {
 			for (int j = (int)Math.floor(y - h2); j <= Math.floor(y + h2); j++) {
@@ -246,13 +275,8 @@ public class MapManager {
 		int x = tile.getX();
 		int y = tile.getY();
 
-		logger.info(String.format("Adds tile: x=%d, y=%d", x, y));
+		// logger.info(String.format("Adds tile: x=%d, y=%d", x, y));
 		layer.setCell(x, y, cell);
-	}
-
-	public void setCamera(OrthographicCamera camera) {
-		this.camera = camera;
-		renderer.setView(camera);
 	}
 
 	/** Retrieve or create a new layer with the given index */
@@ -275,7 +299,7 @@ public class MapManager {
 	/** Zoom to some level in the tiled map */
 	public void zoom(float centerX, float centerY, int dZoom) {
 		transition(dZoom);
-		camera.position.set(centerX, centerY, 0);
+		// camera.position.set(centerX, centerY, 0);
 	}
 
 	private void transition(int dZoom) {
@@ -316,6 +340,11 @@ public class MapManager {
 		panInterpolation.start(new Vector2(camera.position.x, camera.position.y), new Vector2(camera.position.x + dX, camera.position.y + dY));
 	}
 
+	public void moveCamera(float dX, float dY) {
+		camera.position.add(dX, dY, 0);
+		updateTiles();
+	}
+
 	public OrthographicCamera getCamera() {
 		return camera;
 	}
@@ -329,5 +358,23 @@ public class MapManager {
 		int mapH = dim.getHeight() * getTileSize();
 		Vector2 point = geoToPixel(pos, zoom);
 		return new Vector2((float) ((point.x / mapW) * Math.pow(2, zoom)), (float) ((point.y / mapH) * Math.pow(2, zoom)));
+	}
+
+	// Only register clicks within map bounds
+	public void click(float screenX, float screenY) {
+		System.out.println("Clicked: " + screenX + " and " + screenY);
+		if(screenX >= mapX && screenX <= mapX + width && screenY >= mapY && screenY <= mapY + height) {
+			float x = screenX - mapX;
+			float y = screenY - mapY;
+
+			Vector3 vector3 = new Vector3(x, y, 0);
+			camera.unproject(vector3);
+			System.out.println(vector3);
+			zoom(2 * vector3.x, 2 * vector3.y, 1);
+		}
+	}
+
+	public TextureRegion getMapTexture() {
+		return mapRegion;
 	}
 }
