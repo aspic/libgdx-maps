@@ -39,9 +39,10 @@ In your render loop, make sure to update the MapManager.
     public void render() {
         mapManager.update();
         // do other render stuff
+        stage.draw();
     }
 
-The widget is essentially a Table which makes it easy to add it to other
+The widget inherits from Table which makes it easy to add it to other
 widgets (or to add widgets to the map).
 
 ## Dependencies
