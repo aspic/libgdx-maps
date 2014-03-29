@@ -43,7 +43,6 @@ public class MapManager {
     private ObjectMap<String, TextureTile> tileCache = new ObjectMap<String, TextureTile>(); // TODO: Rely on tiled maps instead.
     private ByteCache cache;
     private TileListener listener;
-    private int loadTile = 0;
 	private int zoom = 1;
 
 	// Tile map
@@ -56,6 +55,7 @@ public class MapManager {
 	private FrameBuffer buffer;
 
 	private TextureRegion mapRegion;
+	private boolean redraw = true;
 
 	private Interpolator<Vector2> panInterpolation = new Interpolator<Vector2>(0.1f, Interpolation.pow2) {
 		@Override
@@ -63,6 +63,7 @@ public class MapManager {
 			float x = interpolation.apply(start.x, end.x, elapsed);
 			float y = interpolation.apply(start.y, end.y, elapsed);
 			camera.position.set(x, y, 0);
+			redraw = true;
 		}
 	};
 	private Interpolator<Integer> layerInterpolation = new Interpolator<Integer>(0.5f, Interpolation.pow2) {
@@ -70,6 +71,7 @@ public class MapManager {
 		protected void interpolate(float elapsed, Interpolation interpolation, Integer start, Integer end) {
 			toLayer.setOpacity(interpolation.apply(0, 1, elapsed));
 			fromLayer.setOpacity(interpolation.apply(end, start, elapsed));
+			redraw = true;
 		}
 	};
 
@@ -102,23 +104,18 @@ public class MapManager {
 	/** Redraws the map onto the frame buffer */
 	public void update() {
 		// Render to framebuffer
-		buffer.begin();
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
-		camera.update();
-		renderer.setView(camera);
-		renderer.render();
-		buffer.end();
-
-		mapRegion.setRegion(buffer.getColorBufferTexture());
-
+		if(redraw) {
+			buffer.begin();
+			Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+			camera.update();
+			renderer.setView(camera);
+			renderer.render();
+			buffer.end();
+			mapRegion.setRegion(buffer.getColorBufferTexture());
+			redraw = false;
+		}
 		layerInterpolation.interpolate(Gdx.graphics.getDeltaTime());
 		panInterpolation.interpolate(Gdx.graphics.getDeltaTime());
-	}
-
-	/** Render this map to the provided spritebatch */
-	public void draw(Batch batch) {
-		// Render window
-		batch.draw(mapRegion, mapX, mapY, width, height);
 	}
 
 	/**
@@ -282,6 +279,7 @@ public class MapManager {
 
 		// logger.info(String.format("Adds tile: x=%d, y=%d", x, y));
 		layer.setCell(x, y, cell);
+		redraw = true;
 	}
 
 	/** Retrieve or create a new layer with the given index */
@@ -352,6 +350,7 @@ public class MapManager {
 	public void moveCamera(float dX, float dY) {
 		camera.position.add(dX, dY, 0);
 		updateTiles();
+		redraw = true;
 	}
 
 	public OrthographicCamera getCamera() {
@@ -371,16 +370,10 @@ public class MapManager {
 
 	// Only register clicks within map bounds
 	public void click(float screenX, float screenY) {
-		System.out.println("Clicked: " + screenX + " and " + screenY);
-		if(screenX >= mapX && screenX <= mapX + width && screenY >= mapY && screenY <= mapY + height) {
-			float x = screenX - mapX;
-			float y = screenY - mapY;
-
-			Vector3 vector3 = new Vector3(x, y, 0);
-			camera.unproject(vector3);
-			System.out.println(vector3);
-			zoom(2 * vector3.x, 2 * vector3.y, 1);
-		}
+		Vector3 vector3 = new Vector3(screenX, screenY, 0);
+		camera.unproject(vector3);
+		System.out.println(vector3);
+		zoom(2 * vector3.x, 2 * vector3.y, 1);
 	}
 
 	public TextureRegion getMapTexture() {
