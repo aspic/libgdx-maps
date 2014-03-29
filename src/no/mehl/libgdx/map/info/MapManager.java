@@ -325,6 +325,10 @@ public class MapManager {
 
 	public void zoomCamera(float diff) {
 		float zoom = camera.zoom + diff;
+		if(zoom < 0) {
+			logger.error("Can't have negative zoom.");
+			return;
+		}
 
 		// Load outer tiles
 		if(zoom > 1.5f) {

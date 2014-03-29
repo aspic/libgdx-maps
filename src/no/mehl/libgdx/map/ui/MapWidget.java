@@ -12,6 +12,8 @@ import no.mehl.libgdx.map.info.MapManager;
 public class MapWidget extends Table {
 
 	private MapManager manager;
+	private static final int ZOOM_LIMIT = 50;
+	private int zoom = ZOOM_LIMIT;
 
 	public MapWidget(MapManager manager) {
 		addListener(new MapListener());
@@ -23,6 +25,10 @@ public class MapWidget extends Table {
 	private class MapListener extends ActorGestureListener {
 
 		public MapListener() {
+		}
+
+		public void touchDown (InputEvent event, float x, float y, int pointer, int button) {
+			zoom = ZOOM_LIMIT;
 		}
 
 		@Override
@@ -42,12 +48,12 @@ public class MapWidget extends Table {
 
 		@Override
 		public void zoom(InputEvent event, float initialDistance, float distance) {
-			manager.zoomCamera(1f);
+			System.out.println("Dist: " + distance);
+			// manager.zoomCamera(-1f);
 		}
 
 		@Override
 		public void pinch(InputEvent event, Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) {
-			manager.zoomCamera(-1f);
 		}
 	}
 

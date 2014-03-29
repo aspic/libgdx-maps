@@ -41,7 +41,10 @@ In your render loop, make sure to update the MapManager.
     }
 
 The widget inherits from Table which makes it easy to add it to other
-widgets (or to add widgets to the map).
+widgets (or to add widgets to the map). Below is an image of a map added
+to a Table in Scene2d.
+
+![Scene2d map](http://mehl.no/maps/scene2d-maps.png "scene2d!")
 
 ## Dependencies
 
