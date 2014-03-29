@@ -34,17 +34,23 @@ pass this manager to the MapWidget. Then add the widget to your stage.
     stage.addActor(widget);
     ...
 
-In your render loop, make sure to update the MapManager.
-
-    public void render() {
-        stage.draw();
-    }
-
 The widget inherits from Table which makes it easy to add it to other
 widgets (or to add widgets to the map). Below is an image of a map added
 to a Table in Scene2d.
 
 ![Scene2d map](http://mehl.no/maps/scene2d-maps.png "scene2d!")
+
+### Manually
+
+The map can also be rendered without scene2d. Create the manager and
+render the map by:
+
+    render() {
+        mapManager.update();
+        batch.begin();
+        mapManager.draw(batch);
+        batch.end();
+    }
 
 ## Dependencies
 
