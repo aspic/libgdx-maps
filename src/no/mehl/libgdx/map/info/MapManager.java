@@ -74,7 +74,7 @@ public class MapManager {
 	};
 
     public MapManager(AbstractTileInfo info) {
-        this(info, null, new DiskCache("libgdx-maps/"), 500, 500, 0, 0);
+        this(info, null, new DiskCache("libgdx-maps/"), 512, 512, 0, 0);
     }
 
     public MapManager(AbstractTileInfo info, TileListener listener, ByteCache cache, float width, float height, float mapX, float mapY) {
@@ -89,7 +89,7 @@ public class MapManager {
 
 		tiledMap = new TiledMap();
 		renderer = new OrthogonalTiledMapRenderer(tiledMap, 1f);
-		buffer = new FrameBuffer(Pixmap.Format.RGBA8888, (int)width, (int)height, false);
+		buffer = new FrameBuffer(Pixmap.Format.RGB888, (int)width, (int)height, false);
 		camera = new OrthographicCamera(width, height);
 		camera.position.set(width*0.5f, height*0.5f, 0);
 
@@ -247,7 +247,12 @@ public class MapManager {
             public void failed(Throwable t) {
 				logger.error("Could not load from server", t);
             }
-        };
+
+			@Override
+			public void cancelled() {
+				logger.error("Request was cancelled");
+			}
+		};
         Gdx.net.sendHttpRequest(httpRequest, listener);
     }
 

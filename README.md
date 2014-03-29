@@ -37,8 +37,6 @@ pass this manager to the MapWidget. Then add the widget to your stage.
 In your render loop, make sure to update the MapManager.
 
     public void render() {
-        mapManager.update();
-        // do other render stuff
         stage.draw();
     }
 
