@@ -1,23 +1,25 @@
 package no.mehl.libgdx.map.example;
 
-import com.badlogic.gdx.ApplicationListener;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Logger;
+import no.mehl.libgdx.map.cache.MemoryCache;
+import no.mehl.libgdx.map.info.CloudmadeTileFactoryInfo;
 import no.mehl.libgdx.map.info.MapQuestTileFactoryInfo;
 import no.mehl.libgdx.map.info.MapManager;
+import no.mehl.libgdx.map.ui.MapListener;
+import no.mehl.libgdx.map.ui.MapWidget;
 import no.mehl.libgdx.map.util.GeoPosition;
 
-public class MapTest implements ApplicationListener, InputProcessor {
+public class MapTest implements ApplicationListener, GestureDetector.GestureListener {
 
     private Logger logger = new Logger(MapTest.class.getSimpleName(), Logger.INFO);
 
@@ -30,13 +32,16 @@ public class MapTest implements ApplicationListener, InputProcessor {
 
     private float pinWidth = 0.1f;
     private float pinHeight = 0.1f;
-	private Vector2 downPos;
+
+	private MapListener listener;
+	private float delta;
 
     @Override
     public void create() {
-        mapManager = new MapManager(new MapQuestTileFactoryInfo());
+        mapManager = new MapManager(new CloudmadeTileFactoryInfo(), null, new MemoryCache(), 512, 512, 0, 0);
+		listener = new MapListener(mapManager);
+		Gdx.input.setInputProcessor(new InputMultiplexer(new GestureDetector(this)));
 
-        Gdx.input.setInputProcessor(this);
 
         // Tile maps
         updatePin();
@@ -44,7 +49,6 @@ public class MapTest implements ApplicationListener, InputProcessor {
 
         batch = new SpriteBatch();
 		camera = mapManager.getCamera();
-
     }
 
     @Override
@@ -58,8 +62,10 @@ public class MapTest implements ApplicationListener, InputProcessor {
 		Gdx.gl.glClearColor(0.3f, 0.3f, 0.7f, 1.0f);
 
 		mapManager.update();
+
+		TextureRegion map = mapManager.getMapTexture();
 		batch.begin();
-		mapManager.draw(batch);
+		batch.draw(map, Gdx.graphics.getWidth() * 0.5f - map.getRegionWidth() * 0.5f, Gdx.graphics.getHeight()*0.5f - map.getRegionHeight() * 0.5f);
 		batch.end();
 
 		Matrix4 mat = batch.getProjectionMatrix().cpy();
@@ -68,6 +74,13 @@ public class MapTest implements ApplicationListener, InputProcessor {
 		batch.draw(pin, pinPos.x - pinWidth * 0.5f, pinPos.y, pinWidth, -pinHeight);
 		batch.end();
 		batch.setProjectionMatrix(mat);
+
+
+		delta += Gdx.graphics.getDeltaTime();
+		if(delta > 1f) {
+			logger.info("Current FPS: " + Gdx.graphics.getFramesPerSecond());
+			delta = 0;
+		}
     }
 
     @Override
@@ -85,67 +98,61 @@ public class MapTest implements ApplicationListener, InputProcessor {
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    @Override
-    public boolean keyDown(int keycode) {
-        if(keycode == Input.Keys.ESCAPE) mapManager.zoomCamera(1);
-        else if(keycode == Input.Keys.LEFT) mapManager.panCamera(-20, 0);
-        else if(keycode == Input.Keys.RIGHT) mapManager.panCamera(20, 0);
-        else if(keycode == Input.Keys.UP) mapManager.panCamera(0, -20);
-        else if(keycode == Input.Keys.DOWN) mapManager.panCamera(0, 20);
-
-		mapManager.updateTiles();
-		updatePin();
-
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public boolean keyUp(int keycode) {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public boolean keyTyped(char character) {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        Vector3 vector3 = new Vector3(screenX, screenY, 0);
-        camera.unproject(vector3);
-        // camera.position.set(vector3.x, vector3.y, 0);
-
-		mapManager.click(screenX, screenY);
-       //	mapManager.zoom(2 * vector3.x, 2 * vector3.y, 1);
-		updatePin();
-
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public boolean touchDragged(int screenX, int screenY, int pointer) {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public boolean mouseMoved(int screenX, int screenY) {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public boolean scrolled(int amount) {
-		mapManager.zoomCamera(0.05f * amount);
-		return false;  //To change body of implemented methods use File | Settings | File Templates.
-    }
+    // public boolean scrolled(int amount) {
+	// 	mapManager.zoomCamera(0.05f * amount);
+	//	return false;  //To change body of implemented methods use File | Settings | File Templates.
+    // }
 
     /** Sets some pin that we have */
     private void updatePin() {
 		Vector2 pos = mapManager.geoInPixels(new GeoPosition(59.9267740, 15.7161670));
         pinPos.set(pos.x, pos.y, 0);
     }
+
+	@Override
+	public boolean touchDown(float x, float y, int pointer, int button) {
+		listener.touchDown(null, x, y, pointer, button);
+		return false;
+	}
+
+	@Override
+	public boolean tap(float x, float y, int count, int button) {
+		listener.tap(null, x, y, count, button);
+		return false;
+	}
+
+	@Override
+	public boolean longPress(float x, float y) {
+		listener.longPress(null, x, y);
+		return false;
+	}
+
+	@Override
+	public boolean fling(float velocityX, float velocityY, int button) {
+		listener.fling(null, velocityX, velocityY, button);
+		return false;
+	}
+
+	@Override
+	public boolean pan(float x, float y, float deltaX, float deltaY) {
+		listener.pan(null, x, y, deltaX, -deltaY);
+		return false;
+	}
+
+	@Override
+	public boolean panStop(float x, float y, int pointer, int button) {
+		return false;  //To change body of implemented methods use File | Settings | File Templates.
+	}
+
+	@Override
+	public boolean zoom(float initialDistance, float distance) {
+		listener.zoom(null, initialDistance, distance);
+		return false;
+	}
+
+	@Override
+	public boolean pinch(Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) {
+		listener.pinch(null, initialPointer1, initialPointer2, pointer1, pointer2);
+		return false;
+	}
 }
