@@ -46,9 +46,11 @@ The map can also be rendered without scene2d. Create the manager and
 render the map by:
 
     render() {
+        // Fetches tiles and render the FBO
         mapManager.update();
+        // Use spritebatch to render the FBO as a texture
         batch.begin();
-        mapManager.draw(batch);
+        batch.draw(mapManager.getMapTexture(), 0, 0);
         batch.end();
     }
 

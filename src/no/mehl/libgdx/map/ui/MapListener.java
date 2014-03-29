@@ -28,7 +28,8 @@ public class MapListener extends ActorGestureListener {
 
 	@Override
 	public void tap(InputEvent event, float x, float y, int count, int button) {
-		manager.click(x, y);
+		if(event != null && !event.isCancelled()) manager.click(x, y);
+		else if (event == null) manager.click(x, y);
 	}
 
 	@Override
