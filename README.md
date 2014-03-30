@@ -20,11 +20,31 @@ back ends (such as openstreetmap.org and mapquest.co.uk).
 
 ## Usage
 
+All interaction with the map is done through the _MapManager_. This
+class encapsulates the camera, a framebuffer object and the network
+logic.
+
+The _MapManager_ has to be instantiated with a map back end. These
+back ends describe where the map manager should fetch tiles from. The
+simplest way to create a _MapManager_ is by using one of the predefined
+map back ends:
+
+    MapManager manager = MapManager(new CloudmadeTileFactoryInfo());
+
+This is all there is to it, and the map representation is stored in a
+texture in the manager. This texture can be retrieved by calling:
+
+    manager.getMapTexture();
+
+In order to update this texture (ensure that it gets redrawn on map
+updates) call update() in your render or update loop:
+
+    manager.update();
+
 ### Scene2D
 
-First of all a MapManager has to be created. This is the main class
-encapsulating the camera, framebuffer object and network logic. Next
-pass this manager to the MapWidget. Then add the widget to your stage.
+Simply create a new MapWidget with the MapManager as an argument. This
+widget is basically a texture encapsulated by a Table.
 
     ...
     mapManager = new MapManager(new MapQuestTileFactoryInfo());
