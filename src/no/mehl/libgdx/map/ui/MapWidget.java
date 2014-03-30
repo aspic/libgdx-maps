@@ -31,20 +31,21 @@ public class MapWidget extends Table {
 			ClickListener listener = new ClickListener() {
 				public void clicked (InputEvent event, float x, float y) {
 					if(event.getTarget().equals(zoomIn)) {
-						manager.zoomCamera(1f);
-					} else if(event.getTarget().equals(zoomOut)) {
 						manager.zoomCamera(-1f);
+					} else if(event.getTarget().equals(zoomOut)) {
+						manager.zoomCamera(1f);
 					}
 					event.cancel();
-					System.out.println("zoom listener");
 				}
 			};
 
 			zoomIn.addListener(listener);
 			zoomOut.addListener(listener);
 
-			add(zoomIn).right().bottom().expandX().row();
-			add(zoomOut).right().bottom().expandX();
+			defaults().bottom().pad(5f).size(50f).right();
+
+			add(zoomIn).expand().row();
+			add(zoomOut).expandX();
 		}
 		addListener(new MapListener(manager));
 	}
