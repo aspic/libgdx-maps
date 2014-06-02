@@ -1,6 +1,5 @@
 package no.mehl.libgdx.map.ui;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
@@ -14,7 +13,6 @@ import no.mehl.libgdx.map.info.MapManager;
 public class MapWidget extends Table {
 
 	private MapManager manager;
-	private MapWidgetStyle style;
 
 	public MapWidget(MapManager manager) {
 		this(manager, null);

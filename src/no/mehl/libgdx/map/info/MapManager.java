@@ -303,9 +303,8 @@ public class MapManager {
 	}
 
 	/** Zoom to some level in the tiled map */
-	public void zoom(float centerX, float centerY, int dZoom) {
+	public void zoom(int dZoom) {
 		transition(dZoom);
-		// camera.position.set(centerX, centerY, 0);
 	}
 
 	private void transition(int dZoom) {
@@ -369,14 +368,6 @@ public class MapManager {
 		int mapH = dim.getHeight() * getTileSize();
 		Vector2 point = geoToPixel(pos, zoom);
 		return new Vector2((float) ((point.x / mapW) * Math.pow(2, zoom)), (float) ((point.y / mapH) * Math.pow(2, zoom)));
-	}
-
-	// Only register clicks within map bounds
-	public void click(float screenX, float screenY) {
-		Vector3 vector3 = new Vector3(screenX, screenY, 0);
-		camera.unproject(vector3);
-		System.out.println(vector3);
-		zoom(2 * vector3.x, 2 * vector3.y, 1);
 	}
 
 	public TextureRegion getMapTexture() {

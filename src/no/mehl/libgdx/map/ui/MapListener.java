@@ -1,17 +1,15 @@
 package no.mehl.libgdx.map.ui;
 
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener;
+import com.badlogic.gdx.utils.Array;
 import no.mehl.libgdx.map.info.MapManager;
 
 /**
-* Created with IntelliJ IDEA.
-* User: aspic
-* Date: 3/29/14
-* Time: 10:02 PM
-* To change this template use File | Settings | File Templates.
-*/
+ * Listener which is supposed to be used both for Scene2D events, and regular touch events.
+ */
 public class MapListener extends ActorGestureListener {
 
 	private MapManager manager;
@@ -23,13 +21,13 @@ public class MapListener extends ActorGestureListener {
 	}
 
 	public void touchDown (InputEvent event, float x, float y, int pointer, int button) {
-		this.zoom = ZOOM_LIMIT;
 	}
 
 	@Override
 	public void tap(InputEvent event, float x, float y, int count, int button) {
-		if(event != null && !event.isCancelled()) manager.click(x, y);
-		else if (event == null) manager.click(x, y);
+		int zoom = button == Input.Buttons.LEFT ? 1 : -1;
+		if(event != null && !event.isCancelled()) manager.zoom(zoom);
+		else if (event == null) manager.zoom(zoom);
 	}
 
 	@Override
@@ -39,13 +37,11 @@ public class MapListener extends ActorGestureListener {
 
 	@Override
 	public void fling(InputEvent event, float velocityX, float velocityY, int button) {
-		// manager.zoomCamera(1f);
 	}
 
 	@Override
 	public void zoom(InputEvent event, float initialDistance, float distance) {
-		System.out.println("Dist: " + distance);
-		// manager.zoomCamera(-1f);
+		manager.zoomCamera(-1f);
 	}
 
 	@Override
