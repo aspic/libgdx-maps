@@ -225,7 +225,10 @@ public class MapManager {
             @Override
             public void handleHttpResponse(Net.HttpResponse httpResponse) {
 
-                if(httpResponse.getStatus().getStatusCode() != HttpStatus.SC_OK) return;
+                if(httpResponse.getStatus().getStatusCode() != HttpStatus.SC_OK) {
+					logger.error("Invalid response from server, HTTP status: " + httpResponse.getStatus().getStatusCode());
+					return;
+				}
                 final byte[] content = httpResponse.getResult();
 
                 Gdx.app.postRunnable(

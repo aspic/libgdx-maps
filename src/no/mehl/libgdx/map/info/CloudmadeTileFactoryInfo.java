@@ -3,8 +3,11 @@ package no.mehl.libgdx.map.info;
 /**
  * Wires our map to the Cloudmade back end
  * http://cloudmade.com/documentation/map-tiles
+ *
+ * This backend will need a key to work.
  */
 public class CloudmadeTileFactoryInfo extends AbstractTileInfo {
+
 
     private static final int max = 18;
 
