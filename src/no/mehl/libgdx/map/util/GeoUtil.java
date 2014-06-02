@@ -13,6 +13,7 @@ public class GeoUtil {
      * @param info the tile factory info
      * @return true if this point in <em>tiles</em> is valid at this zoom level. For example, if the zoom level is 0
      * (zoomed all the way out, where there is only one tile), then x,y must be 0,0
+     * TODO: Carry out width/height check
      */
     public static boolean isValidTile(int x, int y, int zoomLevel, AbstractTileInfo info) {
         // int x = (int)coord.getX();
@@ -23,6 +24,7 @@ public class GeoUtil {
             return false;
         }
         // if of the map to the right
+        /**
         if (info.getMapCenterInPixelsAtZoom(zoomLevel).x * 2 <= x * info.getTileSize()) {
             return false;
         }
@@ -30,6 +32,7 @@ public class GeoUtil {
         if (info.getMapCenterInPixelsAtZoom(zoomLevel).y * 2 <= y * info.getTileSize()) {
             return false;
         }
+        **/
         // if out of zoom bounds
         if (zoomLevel < info.getMinimumZoomLevel() || zoomLevel > info.getMaximumZoomLevel()) {
             return false;

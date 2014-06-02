@@ -139,50 +139,32 @@ public class MapManager {
 	}
 
 	/** Query cache or back end for a tile. A tile is returned, but potentially not loaded. */
-    public TextureTile getTile(int tpx, int typ, int zoom) {
-        return getTile(tpx, typ, zoom, false);
+    public TextureTile getTile(int tpx, int tpy, int zoom) {
+        return getTile(tpx, tpy, zoom, false);
     }
 
     private TextureTile getTile(int tpx, int tpy, int zoom, boolean eagerLoad) {
-        // wrap the tiles horizontally --> mod the X with the max width
-        // and use that
-        int tileX = tpx;// tilePoint.getX();
-        int numTilesWide = getMapDimension(zoom).getWidth();
-        if (tileX < 0)
-        {
-            tileX = numTilesWide - (Math.abs(tileX) % numTilesWide);
-        }
-
-        tileX = tileX % numTilesWide;
-        int tileY = tpy;
-        // TilePoint tilePoint = new TilePoint(tileX, tpy);
-        String url = info.getTileUrl(tileX, tileY, zoom);// tilePoint);
+        String url = info.getTileUrl(tpx, tpy, zoom);// tilePoint);
 
         TextureTile.Priority pri = TextureTile.Priority.High;
-        if (!eagerLoad)
-        {
+        if (!eagerLoad) {
             pri = TextureTile.Priority.Low;
         }
-        TextureTile tile = null;
-        // System.out.println("testing for validity: " + tilePoint + " zoom = " + zoom);
-        if (!tileCache.containsKey(url))
-        {
-            if (!GeoUtil.isValidTile(tileX, tileY, zoom, info)) {
-                tile = new TextureTile(tileX, tileY, zoom);
-            }
-            else
-            {
-                tile = new TextureTile(tileX, tileY, zoom, url, pri, this);
+        TextureTile tile;
+        if (!tileCache.containsKey(url)) {
+            if (!GeoUtil.isValidTile(tpx, tpy, zoom, info)) {
+                tile = new TextureTile(tpx, tpy, zoom);
+            } else {
+                tile = new TextureTile(tpx, tpy, zoom, url, pri, this);
                 startLoading(tile);
             }
             tileCache.put(url, tile);
-        }
-        else {
+        } else {
             tile = tileCache.get(url);
         }
 
 		/*
-		 * if (eagerLoad && doEagerLoading) { for (int i = 0; i<1; i++) { for (int j = 0; j<1; j++) { // preload the 4
+         * if (eagerLoad && doEagerLoading) { for (int i = 0; i<1; i++) { for (int j = 0; j<1; j++) { // preload the 4
 		 * tiles under the current one if(zoom > 0) { eagerlyLoad(tilePoint.getX()*2, tilePoint.getY()*2, zoom-1);
 		 * eagerlyLoad(tilePoint.getX()*2+1, tilePoint.getY()*2, zoom-1); eagerlyLoad(tilePoint.getX()*2,
 		 * tilePoint.getY()*2+1, zoom-1); eagerlyLoad(tilePoint.getX()*2+1, tilePoint.getY()*2+1, zoom-1); } } } }
