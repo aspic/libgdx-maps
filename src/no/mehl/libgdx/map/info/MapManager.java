@@ -7,17 +7,13 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
-import com.badlogic.gdx.maps.tiled.TiledMap;
-import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
+import com.badlogic.gdx.maps.tiled.*;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.net.HttpStatus;
 import com.badlogic.gdx.utils.Logger;
 import com.badlogic.gdx.utils.ObjectMap;
@@ -50,8 +46,8 @@ public class MapManager {
 	private OrthogonalTiledMapRenderer renderer;
 	private OrthographicCamera camera;
 
-	private TiledMapTileLayer fromLayer;
-	private TiledMapTileLayer toLayer;
+	private OSMTileLayer fromLayer;
+	private OSMTileLayer toLayer;
 	private FrameBuffer buffer;
 
 	private TextureRegion mapRegion;
@@ -201,14 +197,14 @@ public class MapManager {
         }
 
 		// Request tile from back end
-        Net.HttpRequest httpRequest = new Net.HttpRequest(Net.HttpMethods.GET);
+        final Net.HttpRequest httpRequest = new Net.HttpRequest(Net.HttpMethods.GET);
         httpRequest.setUrl(tile.getURL());
         Net.HttpResponseListener listener = new Net.HttpResponseListener() {
             @Override
             public void handleHttpResponse(Net.HttpResponse httpResponse) {
 
                 if(httpResponse.getStatus().getStatusCode() != HttpStatus.SC_OK) {
-					logger.error("Invalid response from server, HTTP status: " + httpResponse.getStatus().getStatusCode());
+                    logger.error("Invalid response from server, HTTP status: " + httpResponse.getStatus().getStatusCode());
 					return;
 				}
                 final byte[] content = httpResponse.getResult();
@@ -243,7 +239,7 @@ public class MapManager {
 		try {
 			Pixmap pixmap = new Pixmap(content, 0, content.length);
 			Texture texture = new Texture(pixmap);
-			cache.put(tile.getURL(), content);
+            cache.put(tile.getURL(), content);
 			tile.setReference(new SoftReference<Texture>(texture));
 			tile.setLoaded(true);
 		} catch(Exception e) {
@@ -255,7 +251,7 @@ public class MapManager {
 
 	/** Appends this tile to our map, will be rendered for the appropriate layer */
 	private void addToTiledMap(TextureTile tile) {
-		TiledMapTileLayer layer = getLayer(zoom);
+		OSMTileLayer layer = getLayer(zoom);
 		TiledMapTileLayer.Cell cell = new TiledMapTileLayer.Cell();
 		cell.setTile(new StaticTiledMapTile(new TextureRegion(tile.getImage())));
 		cell.setFlipVertically(true);
@@ -268,17 +264,17 @@ public class MapManager {
 	}
 
 	/** Retrieve or create a new layer with the given index */
-	private TiledMapTileLayer getLayer(int index) {
-		TiledMapTileLayer layer = null;
+	private OSMTileLayer getLayer(int index) {
+		OSMTileLayer layer = null;
 
 		try {
-			layer = (TiledMapTileLayer) tiledMap.getLayers().get(index);
+			layer = (OSMTileLayer) tiledMap.getLayers().get(index);
 		} catch(IndexOutOfBoundsException e) {
 			logger.info(String.format("Layer did not exist for zoom %d", index));
 		}
 
 		if(layer == null) {
-			layer = new TiledMapTileLayer((int) Math.pow(2, index), (int) Math.pow(2, index), info.getTileSize(), info.getTileSize());
+			layer = new OSMTileLayer((int) Math.pow(2, index), (int) Math.pow(2, index), info.getTileSize(), info.getTileSize());
 			tiledMap.getLayers().add(layer);
 		}
 		return layer;
