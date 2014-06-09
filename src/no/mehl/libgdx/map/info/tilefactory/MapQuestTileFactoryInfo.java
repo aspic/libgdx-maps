@@ -1,7 +1,9 @@
-package no.mehl.libgdx.map.info;
+package no.mehl.libgdx.map.info.tilefactory;
+
+import no.mehl.libgdx.map.info.AbstractTileInfo;
 
 /**
- * Wires our map to the MapQuest back end
+ * Wires map to the MapQuest back end
  * http://developer.mapquest.com/web/products/open/map
  */
 public class MapQuestTileFactoryInfo extends AbstractTileInfo {

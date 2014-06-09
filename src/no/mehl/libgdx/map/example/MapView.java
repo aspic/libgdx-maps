@@ -12,9 +12,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Logger;
 import no.mehl.libgdx.map.cache.MemoryCache;
-import no.mehl.libgdx.map.info.CloudmadeTileFactoryInfo;
 import no.mehl.libgdx.map.info.MapManager;
-import no.mehl.libgdx.map.info.MapQuestTileFactoryInfo;
+import no.mehl.libgdx.map.info.tilefactory.MapQuestTileFactoryInfo;
 import no.mehl.libgdx.map.ui.MapListener;
 import no.mehl.libgdx.map.util.GeoPosition;
 

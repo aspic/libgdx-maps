@@ -1,7 +1,9 @@
-package no.mehl.libgdx.map.info;
+package no.mehl.libgdx.map.info.tilefactory;
+
+import no.mehl.libgdx.map.info.AbstractTileInfo;
 
 /**
- * Wires our map to the Cloudmade back end
+ * Wires map to the Cloudmade back end
  * http://cloudmade.com/documentation/map-tiles
  *
  * This backend will need a key to work.
